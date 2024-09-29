@@ -19,5 +19,5 @@ impl Context {
 }
 
 pub trait Communicator {
-    async fn talk(&self, message: &str) -> String;
+    async fn talk(&mut self, message: &str) -> String;
 }

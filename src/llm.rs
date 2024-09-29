@@ -7,6 +7,17 @@ const LLM_API_URL: &str = "http://localhost:11434/api";
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ChatResponse {
     response: String,
+    context: Vec<i32>,
+}
+
+impl ChatResponse {
+    pub fn get_response(&self) -> String {
+        self.response.clone()
+    }
+
+    pub fn get_context(&self) -> Vec<i32> {
+        self.context.clone()
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -28,7 +39,7 @@ impl ChatRequest {
     }
 }
 
-pub async fn send_msg(http_client: &reqwest::Client, request: &ChatRequest) -> Result<String, reqwest::Error> {
+pub async fn send_msg(http_client: &reqwest::Client, request: &ChatRequest) -> Result<ChatResponse, reqwest::Error> {
     let uri = format!("{}/generate", LLM_API_URL);
     let res = http_client
         .post(uri)
@@ -38,5 +49,5 @@ pub async fn send_msg(http_client: &reqwest::Client, request: &ChatRequest) -> R
         .json::<ChatResponse>()
         .await?;
 
-    Ok(res.response)
+    Ok(res)
 }
