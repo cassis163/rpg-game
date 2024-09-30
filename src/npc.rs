@@ -20,7 +20,7 @@ impl Communicator for Npc<'_> {
     async fn talk(&mut self, message: &str) -> String {
         let request = ChatRequest::new(message, &self.context);
         let response = send_msg(self.http_client, &request).await.unwrap();
-        &self.context.set_context(response.get_context());
+        self.context.set_context(response.get_context());
         print!("{}: {}\n", self.name, response.get_response());
         return response.get_response();
     }
