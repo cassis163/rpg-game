@@ -4,7 +4,6 @@ use crate::{communication::{Communicator}, llm::{send_msg}};
 use crate::character::Character;
 use crate::communication::{ChatMessage, ChatRequest, MessageRole};
 use crate::item::Item;
-use crate::player::Player;
 
 #[derive(Clone)]
 pub struct Npc<'a> {
