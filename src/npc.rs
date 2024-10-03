@@ -18,11 +18,46 @@ pub struct Npc<'a> {
 
 impl Npc<'_> {
     pub(crate) async fn new<'a>(http_client: &'a reqwest::Client, name: &str, occupation: &str, backstory: &str) -> Npc<'a> {
-        let mut npc_init_msg = ""; //"This is an RPG game and you are responsible for handling the NPC dialogue. The user will send requests in this format: PLAYER [PLAYER_NAME] SAYS [MESSAGE] TO NPC [NPC_NAME] or to give an item like this: PLAYER [PLAYER_NAME] GIVES ITEM [ITEM_AMOUNT] [ITEM_NAME] TO NPC [NPC_NAME]. You must respond in this exact same format as well. For example: NPC [NPC_NAME] SAYS [MESSAGE] TO PLAYER [PLAYER_NAME] or to give an item to the player: NPC [NPC_NAME] GIVES ITEM [ITEM_AMOUNT] TO PLAYER [PLAYER_NAME]. Instead of saying you give an item to the player actually give the item to the player using the format mentioned before! Always follow the format! Variablese like the content of a message, the amount of items you give and the item name all go inside of square brackets: []! Make sure to always put TO PLAYER [PLAYER_NAME] after each command otherwise the game will not function. This is very important make sure to do this at all times! Some more examples with variable names filled in: NPC [Hank] SAYS [Hi there Bob] TO PLAYER [Bob]. NPC [Hank] GIVES ITEM [1] [Steel Sword] TO PLAYER [Bob]".to_string();
-        let test = format!("You are a NPC in a RPG game. Your name is {name} and you are a {occupation}. This is your backstory: {backstory}.");
+        let npc_init = format!("You are a NPC in a RPG game. Your name is {name} and you are a {occupation}. This is your backstory: {backstory}.\n\
+        The communication between you as a npc and the player will be done using json objects. This is generally how one would look: \n{}, \n{}\n{}]n
+        ", r#"
+        {
+            "sender_id": "Bob",
+            "receiver_id": "Hank",
+            "message": "Deal! 50 Gold Coins for a Steel Sword sounds good to me.",
+            "actions": [
+                {
+                    "Give":
+                    {
+                        "item": "Gold Coin",
+                        "amount": 50
+                    }
+                }
+            ]
+        }
+        "#, "
+         You have to replace the values for these keys with the appropriate values. For example in the example above a player agrees to buy a Steel Sword from you for 50 Gold Coins.\n\
+         In the message he lets this know and in the list of actions he triggers the Give action with the parameters specifying which item he sends to you and the amount of items.
+         You would respond to this with a message to your liking and a Give action as well. For example:
+        ", r#"
+        {
+        "sender_id": "Hank",
+        "receiver_id": "Bob",
+        "message": "It was a pleasure doing business with you!",
+        "actions": [
+            {
+                "Give":
+                {
+                    "item": "Steel Sword",
+                    "amount": 1
+                }
+            }
+        ]
+        }
+        "#);
         Npc {
             http_client,
-            message_history: vec![ChatMessage::new(MessageRole::System, test)],
+            message_history: vec![ChatMessage::new(MessageRole::System, npc_init)],
             name: name.to_string(),
             occupation: occupation.to_string(),
             backstory: backstory.to_string(),
