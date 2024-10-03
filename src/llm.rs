@@ -1,4 +1,3 @@
-use serde::{Deserializer, Serializer};
 use crate::communication::{ChatRequest, ChatResponse};
 
 const LLM_API_URL: &str = "http://localhost:11434/api";

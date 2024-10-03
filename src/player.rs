@@ -22,7 +22,7 @@ impl Character for Player {
     }
 
     fn add_item(&mut self, item: Item, amount: i32) {
-        for (key, mut value) in &mut self.items {
+        for (key, value) in &mut self.items {
             if key.name == item.name {
                 *value += amount;
                 return;
@@ -35,7 +35,7 @@ impl Character for Player {
     //noinspection DuplicatedCode
     fn remove_item(&mut self, item: Item, amount: i32) -> bool {
         // If player does not have the item, return false
-        if self.items.iter().position(|(key, value)| key.name == item.name).is_none() {
+        if self.items.iter().position(|(key, _value)| key.name == item.name).is_none() {
             return false;
         }
         self.items = self.items.clone().into_iter().filter_map(|(key, value)| {

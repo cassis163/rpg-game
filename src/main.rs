@@ -1,13 +1,10 @@
 use std::collections::HashMap;
-use std::ops::Index;
-use std::str::FromStr;
 use communication::Communicator;
-use crate::character::Character;
 use crate::communication::{ChatMessage, MessageRole};
 use crate::item::{Item, ItemType};
 use crate::npc::Npc;
 use crate::player::Player;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 
 mod npc;
 mod llm;
@@ -109,7 +106,7 @@ async fn main() {
         }
 
         // Get a mutable reference to the NPC so that we can alter his Message History and Inventory after interactions
-        let mut npc = npcs.iter_mut().find(|n| n.name.to_lowercase() == input.to_lowercase()).unwrap();
+        let npc = npcs.iter_mut().find(|n| n.name.to_lowercase() == input.to_lowercase()).unwrap();
 
         // talk to the chosen npc
         println!("Your message to {}: ", npc.name);

@@ -1,6 +1,3 @@
-use crate::player::Player;
-
-
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub enum ItemType {
     Currency,
