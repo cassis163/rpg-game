@@ -5,11 +5,10 @@ use bevy_rapier3d::{
 };
 
 use crate::{
-    player::{
+    npc::npc_plugin::NpcPlugin, player::{
         camera_plugin::CameraPlugin, movement_plugin::PlayerMovementPlugin,
         player_plugin::PlayerPlugin,
-    },
-    scene::ScenePlugin,
+    }, scene::ScenePlugin
 };
 
 pub fn launch_app() {
@@ -18,6 +17,7 @@ pub fn launch_app() {
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(RapierDebugRenderPlugin::default())
         .add_plugins(ScenePlugin)
+        .add_plugins(NpcPlugin)
         .add_plugins(PlayerPlugin)
         .add_plugins(CameraPlugin)
         .add_plugins(PlayerMovementPlugin)

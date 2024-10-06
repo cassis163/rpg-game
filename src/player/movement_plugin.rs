@@ -5,7 +5,7 @@ use bevy::{
 };
 use bevy_rapier3d::prelude::ExternalForce;
 
-use super::player_plugin::PlayerModel;
+use super::player_plugin::Player;
 
 pub struct PlayerMovementPlugin;
 
@@ -16,7 +16,7 @@ impl Plugin for PlayerMovementPlugin {
 }
 
 fn update_players_movement(
-    mut query: Query<&mut ExternalForce, With<PlayerModel>>,
+    mut query: Query<&mut ExternalForce, With<Player>>,
     key_input: Res<ButtonInput<KeyCode>>,
 ) {
     for mut impulse in query.iter_mut() {

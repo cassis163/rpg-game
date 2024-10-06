@@ -1,4 +1,6 @@
-use crate::{talk::{Talk, Context}, llm::{ChatRequest, send_msg}};
+use crate::llm::{send_msg, ChatRequest};
+
+use super::talk::{Context, Talk};
 
 pub struct Npc<'a> {
     pub name: String,

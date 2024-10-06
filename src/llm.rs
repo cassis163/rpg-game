@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::talk::Context;
+use crate::npc::talk::Context;
 
 const LLM_API_URL: &str = "http://localhost:11434/api";
 

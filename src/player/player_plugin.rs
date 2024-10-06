@@ -12,58 +12,38 @@ use bevy::{
 };
 use bevy_rapier3d::prelude::{Collider, Damping, ExternalForce, LockedAxes, RigidBody};
 
+use crate::character::spawn_character_entity;
+
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_systems(Startup, add_player);
+        app.add_systems(Startup, spawn_player);
     }
 }
 
 #[derive(Component)]
-struct Player;
+pub struct Player;
 
-#[derive(Component)]
-pub struct PlayerModel;
-
-pub fn add_player(
+fn spawn_player(
     mut commands: Commands,
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<StandardMaterial>>,
 ) {
+    let character = spawn_character_entity(
+        &mut commands,
+        meshes,
+        materials,
+        Color::srgb(0.5, 0.5, 1.0),
+        (0.0, 2.0, 0.0),
+    );
     let camera = create_camera();
-    let model = create_model(meshes, materials);
     commands
-        .spawn(TransformBundle::default())
+        .entity(character)
         .insert(Player)
         .with_children(|parent| {
             parent.spawn(camera);
-            parent
-                .spawn((
-                    PlayerModel,
-                    model,
-                    RigidBody::Dynamic,
-                    Collider::cuboid(0.5, 0.5, 0.5),
-                ))
-                .insert(LockedAxes::ROTATION_LOCKED)
-                .insert(Damping {
-                    linear_damping: 5.0,
-                    angular_damping: 0.9,
-                })
-                .insert(ExternalForce::default());
         });
-}
-
-fn create_model(
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) -> PbrBundle {
-    PbrBundle {
-        mesh: meshes.add(Cuboid::default()),
-        material: materials.add(Color::srgb(0.8, 0.0, 0.0)),
-        transform: Transform::from_xyz(1.5, 1.5, 1.5),
-        ..default()
-    }
 }
 
 fn create_camera() -> Camera3dBundle {

@@ -1,9 +1,9 @@
 mod npc;
 mod llm;
-mod talk;
 mod app;
 mod scene;
 mod player;
+mod character;
 
 #[tokio::main]
 async fn main() {
