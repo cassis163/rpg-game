@@ -3,14 +3,13 @@ use bevy::{
     asset::Assets,
     color::Color,
     math::Vec3,
-    pbr::{PbrBundle, StandardMaterial},
+    pbr::StandardMaterial,
     prelude::{
-        default, BuildChildren, Camera3dBundle, Commands, Component, Cuboid, Mesh,
-        OrthographicProjection, ResMut, Transform, TransformBundle,
+        default, BuildChildren, Camera3dBundle, Commands, Component, Mesh, OrthographicProjection,
+        ResMut, Transform,
     },
     render::camera::ScalingMode,
 };
-use bevy_rapier3d::prelude::{Collider, Damping, ExternalForce, LockedAxes, RigidBody};
 
 use crate::character::spawn_character_entity;
 

@@ -28,12 +28,7 @@ fn update_player_cameras(
 }
 
 fn update_camera(camera_transform: &mut Transform, player_transform: &Transform) {
-    let player_position = player_transform.translation;
-    let camera_position = camera_transform.translation;
-    let new_camera_position = Vec3::new(
-        player_position.x + 1.0,
-        camera_position.y,
-        player_position.z,
-    );
-    camera_transform.translation = new_camera_position;
+    let local_position = Vec3::new(4.0, 10.0, 0.0);
+    let world_position = player_transform.translation + local_position;
+    camera_transform.translation = world_position - player_transform.translation;
 }
