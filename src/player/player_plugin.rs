@@ -47,7 +47,7 @@ pub fn add_player(
                 ))
                 .insert(LockedAxes::ROTATION_LOCKED)
                 .insert(Damping {
-                    linear_damping: 0.9,
+                    linear_damping: 5.0,
                     angular_damping: 0.9,
                 })
                 .insert(ExternalForce::default());

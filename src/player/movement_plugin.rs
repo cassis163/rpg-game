@@ -26,7 +26,7 @@ fn update_players_movement(
 
 fn update_player_movement(impulse: &mut ExternalForce, key_input: &ButtonInput<KeyCode>) {
     let direction = get_direction_vector(key_input);
-    impulse.force = direction * 10.0;
+    impulse.force = direction * 15.0;
 }
 
 fn get_direction_vector(key_input: &ButtonInput<KeyCode>) -> Vec3 {
