@@ -1,7 +1,9 @@
 use std::collections::HashMap;
-use crate::character::Character;
+use bevy::prelude::Component;
+use crate::character::{CharacterTrait};
 use crate::item::Item;
 
+#[derive(Component)]
 pub struct Player {
     pub(crate) name: String,
     pub(crate) items: HashMap<Item, i32>,
@@ -16,7 +18,7 @@ impl Player {
     }
 }
 
-impl Character for Player {
+impl CharacterTrait for Player {
     fn set_items(&mut self, items: HashMap<Item, i32>) {
         self.items = items;
     }

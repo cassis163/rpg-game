@@ -1,20 +1,19 @@
 use std::collections::HashMap;
 use communication::Communicator;
 use crate::item::{Item, ItemType};
-use crate::player::Player;
 use serde::{Deserialize, Serialize};
-use crate::character::Character;
 use serde_json_any_key::*;
 use crate::Action::Give;
+use crate::character::CharacterTrait;
 use crate::communication::{ChatMessage, MessageRole};
-use crate::npc::Npc;
+use crate::npc::npc::Npc;
+use crate::player::player::Player;
 
 mod llm;
 mod communication;
 mod player;
 mod character;
 mod item;
-
 mod npc;
 
 // Describes an action a player or npc can perform. These are passed along inside the Interaction struct.
@@ -52,9 +51,8 @@ struct NpcContext {
 
 #[tokio::main]
 async fn main() {
-    let client = reqwest::Client::new();
-    let mut hank = Npc::new(&client, "Hank", "Blacksmith", "Hank is a well respected blacksmith in the Kingdom of Veldora").await;
-    let mut pete = Npc::new(&client, "Pete", "Knight", "Pete is a fearless knight who has fought countless of great battles for the Kingdom of Veldora").await;
+    let mut hank = Npc::new("Hank", "Blacksmith", "Hank is a well respected blacksmith in the Kingdom of Veldora").await;
+    let mut pete = Npc::new("Pete", "Knight", "Pete is a fearless knight who has fought countless of great battles for the Kingdom of Veldora").await;
     let mut npcs: Vec<&mut Npc> = vec![&mut hank, &mut pete];
 
     let items: Vec<Item> = vec![
@@ -71,7 +69,7 @@ async fn main() {
 
     let it = Interaction{
         sender_id: bob.name.to_string(),
-        receiver_id: npcs[0].name.to_string(),
+        receiver_id: npcs[0].npc_data.name.to_string(),
         message: "I'd like as many Steel Swords as this can get me and the change please".to_string(),
         actions: vec![Give {
             item: items[0].name.clone(),

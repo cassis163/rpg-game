@@ -41,7 +41,7 @@ pub fn spawn_character_entity(
         .id()
 }
 
-pub trait Character {
+pub trait CharacterTrait {
     fn set_items(&mut self, new_items: HashMap<Item, i32>);
     fn add_item(&mut self, item: Item, amount: i32);
     fn remove_item(&mut self, item: Item, amount: i32) -> bool;

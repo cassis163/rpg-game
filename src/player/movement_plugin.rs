@@ -4,8 +4,7 @@ use bevy::{
     math::Vec3, prelude::{KeyCode, Query, Res, With},
 };
 use bevy_rapier3d::prelude::ExternalForce;
-
-use super::player_plugin::Player;
+use crate::player::player::Player;
 
 pub struct PlayerMovementPlugin;
 
