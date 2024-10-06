@@ -10,6 +10,6 @@ impl Default for Context {
     }
 }
 
-pub trait Communicator {
+pub trait Talk {
     async fn talk(&mut self, message: &str) -> String;
 }

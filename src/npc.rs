@@ -1,4 +1,4 @@
-use crate::{talk::{Communicator, Context}, llm::{ChatRequest, send_msg}};
+use crate::{talk::{Talk, Context}, llm::{ChatRequest, send_msg}};
 
 pub struct Npc<'a> {
     pub name: String,
@@ -16,7 +16,7 @@ impl Npc<'_> {
     }
 }
 
-impl Communicator for Npc<'_> {
+impl Talk for Npc<'_> {
     async fn talk(&mut self, message: &str) -> String {
         let request = ChatRequest::new(message, &self.context);
         let chat_response = send_msg(self.http_client, &request).await.unwrap();
