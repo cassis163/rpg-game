@@ -5,6 +5,8 @@ use crate::item::{Item, ItemType};
 use crate::npc::Npc;
 use crate::player::Player;
 use serde::{Deserialize, Serialize};
+use crate::character::Character;
+use serde_json_any_key::*;
 
 mod npc;
 mod llm;
@@ -125,7 +127,24 @@ async fn main() {
         //dbg!(&user_to_npc);
 
         // Jsonify our interaction to send to our npc
-        let js = serde_json::to_string_pretty(&user_to_npc).unwrap();
+        let mut js = serde_json::to_string_pretty(&user_to_npc).unwrap();
+        let npc_items = npc.get_items().to_json_map().unwrap();
+        //println!("{}", npc_items);
+        // js.push_str(r#"
+        // {
+        //     "npc_inventory": [
+        //         {
+        //             "item": "Steel Sword",
+        //             "amount": 5
+        //         },
+        //         {
+        //             "item": "Steel Dagger",
+        //             "amount": 10
+        //         }
+        //     ]
+        // }
+        // "#);
+        js.push_str(npc_items.as_str());
 
         println!("{}", npc.talk(ChatMessage::new(MessageRole::User, js)).await);
     }

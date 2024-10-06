@@ -18,7 +18,7 @@ pub struct Npc<'a> {
 impl Npc<'_> {
     pub(crate) async fn new<'a>(http_client: &'a reqwest::Client, name: &str, occupation: &str, backstory: &str) -> Npc<'a> {
         let npc_init = format!("You are a NPC in a RPG game. Your name is {name} and you are a {occupation}. This is your backstory: {backstory}.\n\
-        The communication between you as a npc and the player will be done using json objects. This is generally how one would look: \n{}, \n{}\n{}]n
+        The communication between you as a npc and the player will be done using json objects. This is generally how one would look: \n{}, \n{}\n{}\n{}\n
         ", r#"
         {
             "sender_id": "Bob",
@@ -34,9 +34,23 @@ impl Npc<'_> {
                 }
             ]
         }
+        {
+            npc_inventory": [
+                {
+                    "item": "Steel Sword",
+                    "amount": 5
+                },
+                {
+                    "item": "Gold Coin",
+                    "amount": 30
+                }
+            ]
+        }
         "#, "
+         The first object is the request that the user sends you.
          You have to replace the values for these keys with the appropriate values. For example in the example above a player agrees to buy a Steel Sword from you for 50 Gold Coins.\n\
          In the message he lets this know and in the list of actions he triggers the Give action with the parameters specifying which item he sends to you and the amount of items.
+         The second object is passed to you by the game and lets you know what items you as the NPC currently have. You can only give items that you have (enough of).
          You would respond to this with a message to your liking and a Give action as well. For example:
         ", r#"
         {
@@ -53,7 +67,9 @@ impl Npc<'_> {
             }
         ]
         }
-        "#);
+        "#,
+        "As you can see you don't send the second object (your inventory). The game will update your inventory for you",
+        );
         Npc {
             http_client,
             message_history: vec![ChatMessage::new(MessageRole::System, npc_init)],
@@ -71,6 +87,7 @@ impl Character for &mut Npc<'_> {
         self.items = items;
     }
 
+    //noinspection DuplicatedCode
     fn add_item(&mut self, item: Item, amount: i32) {
         for (key, value) in &mut self.items {
             if key.name == item.name {

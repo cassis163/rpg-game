@@ -21,6 +21,7 @@ impl Character for Player {
         self.items = items;
     }
 
+    //noinspection DuplicatedCode
     fn add_item(&mut self, item: Item, amount: i32) {
         for (key, value) in &mut self.items {
             if key.name == item.name {

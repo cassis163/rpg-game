@@ -1,4 +1,6 @@
-#[derive(Clone, Eq, PartialEq, Hash)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum ItemType {
     Currency,
     Food,
@@ -7,7 +9,7 @@ pub enum ItemType {
     Misc,
 }
 
-#[derive(Clone, Eq, Hash, PartialEq)]
+#[derive(Clone, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct Item {
     // E.g. Sword
     pub(crate) name: String,
