@@ -1,14 +1,7 @@
 use bevy::{
-    app::{Plugin, PostUpdate, Startup},
-    asset::Assets,
-    color::Color,
-    math::Vec3,
-    pbr::{PbrBundle, StandardMaterial},
-    prelude::{
-        default, BuildChildren, Camera, Camera3dBundle, Commands, Component, Cuboid, Mesh,
-        OrthographicProjection, Parent, Query, ResMut, Transform, TransformBundle, With, Without,
-    },
-    render::camera::ScalingMode,
+    app::{Plugin, PostUpdate, Startup}, asset::Assets, color::Color, input::ButtonInput, math::Vec3, pbr::{PbrBundle, StandardMaterial}, prelude::{
+        default, BuildChildren, Camera, Camera3dBundle, Commands, Component, Cuboid, KeyCode, Mesh, OrthographicProjection, Parent, Query, Res, ResMut, Transform, TransformBundle, With, Without
+    }, render::camera::ScalingMode
 };
 
 pub struct PlayerPlugin;
@@ -17,6 +10,40 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_systems(Startup, add_player);
     }
+}
+
+pub struct PlayerMovementPlugin;
+
+impl Plugin for PlayerMovementPlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.add_systems(PostUpdate, update_players_movement);
+    }
+}
+
+fn update_players_movement(
+    mut query: Query<&mut Transform, With<PlayerModel>>,
+    key_input: Res<ButtonInput<KeyCode>>
+) {
+    for mut transform in query.iter_mut() {
+        update_player_movement(&mut transform, &key_input);
+    }
+}
+
+fn update_player_movement(transform: &mut Transform, key_input: &ButtonInput<KeyCode>) {
+    let mut direction = Vec3::ZERO;
+    if key_input.just_pressed(KeyCode::KeyW) {
+        direction -= Vec3::X;
+    }
+    if key_input.just_pressed(KeyCode::KeyS) {
+        direction += Vec3::X;
+    }
+    if key_input.just_pressed(KeyCode::KeyA) {
+        direction += Vec3::Z;
+    }
+    if key_input.just_pressed(KeyCode::KeyD) {
+        direction -= Vec3::Z;
+    }
+    transform.translation += direction * 0.1;
 }
 
 pub struct CameraPlugin;
