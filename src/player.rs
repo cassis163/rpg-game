@@ -1,12 +1,12 @@
 use bevy::{
-    app::{Plugin, Startup},
+    app::{Plugin, PostUpdate, Startup},
     asset::Assets,
     color::Color,
     math::Vec3,
     pbr::{PbrBundle, StandardMaterial},
     prelude::{
-        default, BuildChildren, Camera, Camera3dBundle, Children, Commands, Component,
-        Cuboid, Mesh, OrthographicProjection, Query, ResMut, Transform, TransformBundle, With,
+        default, BuildChildren, Camera, Camera3dBundle, Commands, Component, Cuboid, Mesh,
+        OrthographicProjection, Parent, Query, ResMut, Transform, TransformBundle, With, Without,
     },
     render::camera::ScalingMode,
 };
@@ -23,12 +23,15 @@ pub struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_systems(Startup, update_player_cameras);
+        app.add_systems(PostUpdate, update_player_cameras);
     }
 }
 
 #[derive(Component)]
 struct Player;
+
+#[derive(Component)]
+struct PlayerModel;
 
 pub fn add_player(
     mut commands: Commands,
@@ -43,18 +46,18 @@ pub fn add_player(
         .id();
     commands.entity(player_entity).with_children(|parent| {
         parent.spawn(camera);
-        parent.spawn(model);
+        parent.spawn((PlayerModel, model));
     });
 }
 
 fn update_player_cameras(
-    player_query: Query<(&Children, &Transform), With<Player>>,
-    mut camera_query: Query<&mut Transform, With<Camera>>,
+    mut camera_query: Query<(&mut Transform, &Parent), With<Camera>>,
+    model_query: Query<(&Transform, &Parent), (With<PlayerModel>, Without<Camera>)>,
 ) {
-    for (children, player_transform) in player_query.iter() {
-        for &child in children.iter() {
-            if let Ok(mut camera_transform) = camera_query.get_mut(child) {
-                update_camera(&mut camera_transform, player_transform);
+    for (mut camera_transform, camera_parent) in camera_query.iter_mut() {
+        for (model_transform, model_parent) in model_query.iter() {
+            if camera_parent.get() == model_parent.get() {
+                update_camera(&mut camera_transform, model_transform);
             }
         }
     }
