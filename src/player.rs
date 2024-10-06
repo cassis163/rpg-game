@@ -12,7 +12,7 @@ use bevy::{
     },
     render::camera::ScalingMode,
 };
-use bevy_rapier3d::prelude::{Collider, RigidBody};
+use bevy_rapier3d::prelude::{Collider, LockedAxes, RigidBody};
 
 pub struct PlayerPlugin;
 
@@ -82,7 +82,15 @@ pub fn add_player(
         .insert(Player)
         .with_children(|parent| {
             parent.spawn(camera);
-            parent.spawn((PlayerModel, model, RigidBody::Dynamic, Collider::cuboid(0.5, 0.5, 0.5)));
+            parent
+                .spawn((
+                    PlayerModel,
+                    model,
+                    RigidBody::Dynamic,
+                    Collider::cuboid(0.5, 0.5, 0.5),
+                ))
+                .insert(LockedAxes::ROTATION_LOCKED_X)
+                .insert(LockedAxes::ROTATION_LOCKED_Z);
         });
 }
 
