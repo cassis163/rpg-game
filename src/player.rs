@@ -12,7 +12,7 @@ use bevy::{
     },
     render::camera::ScalingMode,
 };
-use bevy_rapier3d::prelude::{Collider, LockedAxes, RigidBody};
+use bevy_rapier3d::prelude::{Collider, Damping, ExternalForce, LockedAxes, RigidBody};
 
 pub struct PlayerPlugin;
 
@@ -31,29 +31,34 @@ impl Plugin for PlayerMovementPlugin {
 }
 
 fn update_players_movement(
-    mut query: Query<&mut Transform, With<PlayerModel>>,
+    mut query: Query<&mut ExternalForce, With<PlayerModel>>,
     key_input: Res<ButtonInput<KeyCode>>,
 ) {
-    for mut transform in query.iter_mut() {
-        update_player_movement(&mut transform, &key_input);
+    for mut impulse in query.iter_mut() {
+        update_player_movement(&mut impulse, &key_input);
     }
 }
 
-fn update_player_movement(transform: &mut Transform, key_input: &ButtonInput<KeyCode>) {
+fn update_player_movement(impulse: &mut ExternalForce, key_input: &ButtonInput<KeyCode>) {
+    let direction = get_direction_vector(key_input);
+    impulse.force = direction * 10.0;
+}
+
+fn get_direction_vector(key_input: &ButtonInput<KeyCode>) -> Vec3 {
     let mut direction = Vec3::ZERO;
-    if key_input.just_pressed(KeyCode::KeyW) {
+    if key_input.pressed(KeyCode::KeyW) {
         direction -= Vec3::X;
     }
-    if key_input.just_pressed(KeyCode::KeyS) {
+    if key_input.pressed(KeyCode::KeyS) {
         direction += Vec3::X;
     }
-    if key_input.just_pressed(KeyCode::KeyA) {
+    if key_input.pressed(KeyCode::KeyA) {
         direction += Vec3::Z;
     }
-    if key_input.just_pressed(KeyCode::KeyD) {
+    if key_input.pressed(KeyCode::KeyD) {
         direction -= Vec3::Z;
     }
-    transform.translation += direction * 0.1;
+    direction
 }
 
 pub struct CameraPlugin;
@@ -89,8 +94,9 @@ pub fn add_player(
                     RigidBody::Dynamic,
                     Collider::cuboid(0.5, 0.5, 0.5),
                 ))
-                .insert(LockedAxes::ROTATION_LOCKED_X)
-                .insert(LockedAxes::ROTATION_LOCKED_Z);
+                .insert(LockedAxes::ROTATION_LOCKED)
+                .insert(Damping { linear_damping: 0.9, angular_damping: 0.9 })
+                .insert(ExternalForce::default());
         });
 }
 
