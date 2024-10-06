@@ -1,20 +1,30 @@
 use std::collections::HashMap;
 use communication::Communicator;
-use crate::communication::{ChatMessage, MessageRole};
 use crate::item::{Item, ItemType};
-use crate::npc::Npc;
 use crate::player::Player;
 use serde::{Deserialize, Serialize};
 use crate::character::Character;
 use serde_json_any_key::*;
+use crate::Action::Give;
+use crate::communication::{ChatMessage, MessageRole};
+use crate::npc::Npc;
 
-mod npc;
 mod llm;
 mod communication;
 mod player;
 mod character;
 mod item;
 
+mod npc;
+
+// Describes an action a player or npc can perform. These are passed along inside the Interaction struct.
+// For now only a give action exists. Some ideas:
+// 1. NPCs can issue a 'Follow' action where they follow the player around until directed otherwise
+// 2. 'Move' action where they can move to a certain location (Coordinates/named places) with path-finding.
+// 3. 'Quest' action so that they can give out quests to players
+// 4. 'Resupply': move to a certain location to stock up on new items (based on demand??!) if they run out
+// 6. 'Open': open their shop/business on their preferred times
+// 5. 'Close': close their shop/business
 #[derive(Debug, Serialize, Deserialize)]
 enum Action {
     Give {
@@ -23,7 +33,7 @@ enum Action {
     }
 }
 
-
+// What the Player sends to the model (+ the NpcContext below) and what the model returns to the player (only this)
 #[derive(Debug, Serialize, Deserialize)]
 struct Interaction {
     sender_id: String,
@@ -32,38 +42,16 @@ struct Interaction {
     actions: Vec<Action>,
 }
 
+// Provides the model (npc) with the state of the npc it is responding as
+// For now only the items they have. But maybe things like their location, relations to other NPCs/players and more
+#[derive(Serialize, Deserialize)]
+struct NpcContext {
+    npc_inventory: HashMap<Item, i32>,
+}
+
 
 #[tokio::main]
 async fn main() {
-    // let json = r#"
-    // {
-    //     "sender_id": "12345",
-    //     "receiver_id": "54321",
-    //     "message": "Hello, World!",
-    //     "actions": [
-    //         {
-    //             "Give": {
-    //                 "item": "Steel Sword",
-    //                 "amount": 1
-    //             }
-    //         }
-    //     ]
-    // }
-    // "#;
-    //
-    // let test = Interaction{
-    //     sender_id: "12345".to_string(),
-    //     receiver_id: "54321".to_string(),
-    //     message: "Hello there".to_string(),
-    //     actions: vec![
-    //         ActionType::Give{item: "Gold Coin".to_string(), amount: 50},
-    //     ],
-    // };
-    //
-    // print!("{}", serde_json::to_string_pretty(&test).unwrap());
-    //
-    // dbg!(serde_json::from_str::<Interaction>(json).unwrap());
-
     let client = reqwest::Client::new();
     let mut hank = Npc::new(&client, "Hank", "Blacksmith", "Hank is a well respected blacksmith in the Kingdom of Veldora").await;
     let mut pete = Npc::new(&client, "Pete", "Knight", "Pete is a fearless knight who has fought countless of great battles for the Kingdom of Veldora").await;
@@ -76,76 +64,24 @@ async fn main() {
 
     // Create a player to test with
     let mut bob = Player::new("Bob".to_string());
-    bob.items = HashMap::new();
     // Give the player 500 Gold Coins to play with
-    bob.items.insert(items[0].clone(), 500);
+    bob.add_item(items[0].clone(), 500);
     // Give the blacksmith npc 5 Steel Swords he can sell
-    npcs[0].items.insert(items[1].clone(), 5);
+    npcs[0].add_item(items[1].clone(), 5);
 
-    loop {
-        // Present the user with the available NPC's to talk with
-        println!("Choose on of the following NPCs to talk to: ");
-        let mut options = String::from("[");
-        for npc in &npcs {
-            options.push_str(&(npc.name));
-            if npcs.iter().position(|n| n.name == npc.name) != Some(npcs.len() - 1) {
-                options.push_str(", ");
-            } else {
-                options.push(']')
-            }
-        }
-        println!("{}", options);
+    let it = Interaction{
+        sender_id: bob.name.to_string(),
+        receiver_id: npcs[0].name.to_string(),
+        message: "I'd like as many Steel Swords as this can get me and the change please".to_string(),
+        actions: vec![Give {
+            item: items[0].name.clone(),
+            amount: 30,
+        }],
+    };
 
-        // Get the user input
-        let mut input = String::new();
-        std::io::stdin().read_line(&mut input).unwrap();
-        let input = input.trim();
+    let mut js = serde_json::to_string_pretty(&it).unwrap();
+    js.push_str(npcs[0].get_items().to_json_map().unwrap().as_str());
 
-        // Check if the npc exists (ignore case)
-        if !npcs.iter().map(|n| n.name.to_lowercase()).collect::<Vec<String>>().contains(&&input.to_string().to_lowercase()) {
-            println!("No NPC with name: {} exists!", input);
-            continue;
-        }
-
-        // Get a mutable reference to the NPC so that we can alter his Message History and Inventory after interactions
-        let npc = npcs.iter_mut().find(|n| n.name.to_lowercase() == input.to_lowercase()).unwrap();
-
-        // talk to the chosen npc
-        println!("Your message to {}: ", npc.name);
-        let mut message = String::new();
-        std::io::stdin().read_line(&mut message).unwrap();
-        let message = message.trim();
-
-        // let mut user_to_npc = Interaction {
-        //     sender_id: bob.name.clone(),
-        //     receiver_id: npc.name.clone(),
-        //     message: message.to_string(),
-        //     actions: Vec::new(),
-        // };
-
-        let user_to_npc = serde_json::from_str::<Interaction>(message).unwrap();
-        //dbg!(&user_to_npc);
-
-        // Jsonify our interaction to send to our npc
-        let mut js = serde_json::to_string_pretty(&user_to_npc).unwrap();
-        let npc_items = npc.get_items().to_json_map().unwrap();
-        //println!("{}", npc_items);
-        // js.push_str(r#"
-        // {
-        //     "npc_inventory": [
-        //         {
-        //             "item": "Steel Sword",
-        //             "amount": 5
-        //         },
-        //         {
-        //             "item": "Steel Dagger",
-        //             "amount": 10
-        //         }
-        //     ]
-        // }
-        // "#);
-        js.push_str(npc_items.as_str());
-
-        println!("{}", npc.talk(ChatMessage::new(MessageRole::User, js)).await);
-    }
+    let cm = ChatMessage::new(MessageRole::User, js);
+    println!("{}", npcs[0].talk(cm).await);
 }

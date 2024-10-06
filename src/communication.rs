@@ -4,39 +4,14 @@ pub trait Communicator {
     async fn talk(&mut self, message: ChatMessage) -> String;
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum MessageRole {
+    #[serde(rename = "system")]
     System,
+    #[serde(rename = "user")]
     User,
+    #[serde(rename = "assistant")]
     Assistant,
-}
-
-impl<'de> Deserialize<'de> for MessageRole {
-    fn deserialize<D>(de: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let variant = String::deserialize(de)?;
-        Ok(match variant.as_str() {
-            "system" => MessageRole::System,
-            "user" => MessageRole::User,
-            "assistant" => MessageRole::Assistant,
-            _other => MessageRole::Assistant,
-        })
-    }
-}
-
-impl Serialize for MessageRole {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        Ok(match *self {
-            MessageRole::System => serializer.serialize_str("system")?,
-            MessageRole::User => serializer.serialize_str("user")?,
-            MessageRole::Assistant => serializer.serialize_str("assistant")?,
-        })
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

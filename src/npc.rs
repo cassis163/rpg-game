@@ -68,7 +68,7 @@ impl Npc<'_> {
         ]
         }
         "#,
-        "As you can see you don't send the second object (your inventory). The game will update your inventory for you",
+        "As you can see you don't send the second object (your inventory). The game will update your inventory for you. Only communicate with one json object and never put any more text before or after the object or it will fail!",
         );
         Npc {
             http_client,
