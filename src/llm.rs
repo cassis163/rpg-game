@@ -1,23 +1,13 @@
 use serde::{Deserialize, Serialize};
 
-use crate::communication::Context;
+use crate::talk::Context;
 
 const LLM_API_URL: &str = "http://localhost:11434/api";
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ChatResponse {
-    response: String,
-    context: Vec<i32>,
-}
-
-impl ChatResponse {
-    pub fn get_response(&self) -> String {
-        self.response.clone()
-    }
-
-    pub fn get_context(&self) -> Vec<i32> {
-        self.context.clone()
-    }
+    pub response: String,
+    pub context: Vec<i32>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -34,7 +24,7 @@ impl ChatRequest {
             model: "game-llm".to_string(),
             prompt: prompt.to_string(),
             stream: false,
-            context: context.get_context(),
+            context: context.context_parameter.clone(),
         }
     }
 }
