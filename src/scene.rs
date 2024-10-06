@@ -20,7 +20,7 @@ fn spawn_scene(
         ..default()
     };
     // Plane with collider
-    commands.spawn((plane, Collider::cuboid(25.0, 0.1, 25.0)));
+    commands.spawn((plane, Collider::cuboid(12.5, 0.1, 12.5)));
     
     // Cubes with colliders
     commands.spawn((
