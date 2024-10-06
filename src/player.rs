@@ -1,7 +1,16 @@
 use bevy::{
-    app::{Plugin, PostUpdate, Startup}, asset::Assets, color::Color, input::ButtonInput, math::Vec3, pbr::{PbrBundle, StandardMaterial}, prelude::{
-        default, BuildChildren, Camera, Camera3dBundle, Commands, Component, Cuboid, KeyCode, Mesh, OrthographicProjection, Parent, Query, Res, ResMut, Transform, TransformBundle, With, Without
-    }, render::camera::ScalingMode
+    app::{Plugin, PostUpdate, Startup},
+    asset::Assets,
+    color::Color,
+    input::ButtonInput,
+    math::Vec3,
+    pbr::{PbrBundle, StandardMaterial},
+    prelude::{
+        default, BuildChildren, Camera, Camera3dBundle, Commands, Component, Cuboid, KeyCode, Mesh,
+        OrthographicProjection, Parent, Query, Res, ResMut, Transform, TransformBundle, With,
+        Without,
+    },
+    render::camera::ScalingMode,
 };
 
 pub struct PlayerPlugin;
@@ -22,7 +31,7 @@ impl Plugin for PlayerMovementPlugin {
 
 fn update_players_movement(
     mut query: Query<&mut Transform, With<PlayerModel>>,
-    key_input: Res<ButtonInput<KeyCode>>
+    key_input: Res<ButtonInput<KeyCode>>,
 ) {
     for mut transform in query.iter_mut() {
         update_player_movement(&mut transform, &key_input);
@@ -67,14 +76,13 @@ pub fn add_player(
 ) {
     let camera = create_camera();
     let model = create_model(meshes, materials);
-    let player_entity = commands
+    commands
         .spawn(TransformBundle::default())
         .insert(Player)
-        .id();
-    commands.entity(player_entity).with_children(|parent| {
-        parent.spawn(camera);
-        parent.spawn((PlayerModel, model));
-    });
+        .with_children(|parent| {
+            parent.spawn(camera);
+            parent.spawn((PlayerModel, model));
+        });
 }
 
 fn update_player_cameras(

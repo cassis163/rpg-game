@@ -1,10 +1,13 @@
 use bevy::prelude::*;
+use bevy_rapier3d::{plugin::{NoUserData, RapierPhysicsPlugin}, render::RapierDebugRenderPlugin};
 
 use crate::{player::{CameraPlugin, PlayerMovementPlugin, PlayerPlugin}, scene::ScenePlugin};
 
 pub fn launch_app() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
+        .add_plugins(RapierDebugRenderPlugin::default())
         .add_plugins(ScenePlugin)
         .add_plugins(PlayerPlugin)
         .add_plugins(CameraPlugin)
