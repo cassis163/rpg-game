@@ -1,0 +1,39 @@
+use bevy::{
+    app::{Plugin, PostUpdate},
+    math::Vec3,
+    prelude::{Camera, Parent, Query, Transform, With, Without},
+};
+
+use super::player_plugin::PlayerModel;
+
+pub struct CameraPlugin;
+
+impl Plugin for CameraPlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.add_systems(PostUpdate, update_player_cameras);
+    }
+}
+
+fn update_player_cameras(
+    mut camera_query: Query<(&mut Transform, &Parent), With<Camera>>,
+    model_query: Query<(&Transform, &Parent), (With<PlayerModel>, Without<Camera>)>,
+) {
+    for (mut camera_transform, camera_parent) in camera_query.iter_mut() {
+        for (model_transform, model_parent) in model_query.iter() {
+            if camera_parent.get() == model_parent.get() {
+                update_camera(&mut camera_transform, model_transform);
+            }
+        }
+    }
+}
+
+fn update_camera(camera_transform: &mut Transform, player_transform: &Transform) {
+    let player_position = player_transform.translation;
+    let camera_position = camera_transform.translation;
+    let new_camera_position = Vec3::new(
+        player_position.x + 1.0,
+        camera_position.y,
+        player_position.z,
+    );
+    camera_transform.translation = new_camera_position;
+}
