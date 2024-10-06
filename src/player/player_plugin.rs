@@ -33,7 +33,7 @@ fn spawn_player(
         &mut commands,
         meshes,
         materials,
-        Color::srgb(0.5, 0.5, 1.0),
+        Color::srgb(1.0, 0.0, 0.0),
         (0.0, 2.0, 0.0),
     );
     let camera = create_camera();
