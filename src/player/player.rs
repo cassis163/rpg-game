@@ -3,7 +3,7 @@ use bevy::prelude::Component;
 use crate::character::{CharacterTrait};
 use crate::item::Item;
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct Player {
     pub(crate) name: String,
     pub(crate) items: HashMap<Item, i32>,

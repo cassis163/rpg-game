@@ -1,7 +1,7 @@
 use bevy::{app::{App, Plugin, Startup}, asset::Assets, color::Color, pbr::StandardMaterial, prelude::{Commands, Component, Mesh, ResMut}};
 
 use crate::character::spawn_character_entity;
-use crate::npc::npc::Npc;
+use crate::npc::npc::{Npc};
 
 pub struct NpcPlugin;
 
@@ -31,8 +31,7 @@ fn spawn_npc(
         Color::srgb(0.0, 0.0, 1.0),
         (0.0, 5.0, 2.0),
     );
-    let client = reqwest::Client::new();
-    // commands
-    //     .entity(character)
-    //     .insert(Npc::new("Hank", "Blacksmith", "Hank is a well respected blacksmith in the Kingdom of Veldora"));
+    commands
+        .entity(character)
+        .insert(Npc::new("Hank", "Blacksmith", "Hank is a well respected blacksmith in the Kingdom of Veldora"));
 }

@@ -7,7 +7,7 @@ use crate::communication::{ChatMessage, ChatRequest, MessageRole};
 use crate::item::Item;
 
 #[derive(Component, Clone)]
-pub struct NpcData {
+pub struct Npc {
     pub(crate) name: String,
     pub(crate) occupation: String,
     pub(crate) backstory: String,
@@ -16,13 +16,8 @@ pub struct NpcData {
     //pub(crate) http_client: &'static reqwest::Client,
 }
 
-#[derive(Bundle, Clone)]
-pub struct Npc {
-    pub(crate) npc_data: NpcData,
-}
-
 impl Npc {
-    pub(crate) async fn new(name: &str, occupation: &str, backstory: &str) -> Npc {
+    pub(crate) fn new(name: &str, occupation: &str, backstory: &str) -> Npc {
         let npc_init = format!("You are a NPC in a RPG game. Your name is {name} and you are a {occupation}. This is your backstory: {backstory}.\n\
         The communication between you as a npc and the player will be done using json objects. This is generally how one would look: \n{}, \n{}\n{}\n{}\n
         ", r#"
@@ -74,44 +69,44 @@ impl Npc {
         ]
         }
         "#,
-        "As you can see you don't send the second object (your inventory). The game will update your inventory for you. Only communicate with one json object and never put any more text before or after the object or it will fail!",
+        "As you can see you don't send the second object (your inventory). The game will update your inventory for you. Only communicate with one json object and never put any more text before or after the object or it will fail! \
+        Also don't add ```json before and ``` after the object. Just send the object only. So the first character will always be { and the last character you send will always be }",
         );
         Npc {
-            npc_data: NpcData {
-                message_history: vec![ChatMessage::new(MessageRole::System, npc_init)],
-                name: name.to_string(),
-                occupation: occupation.to_string(),
-                backstory: backstory.to_string(),
-                items: HashMap::new(),
-            }
+            message_history: vec![ChatMessage::new(MessageRole::System, npc_init)],
+            name: name.to_string(),
+            occupation: occupation.to_string(),
+            backstory: backstory.to_string(),
+            items: HashMap::new(),
+
         }
     }
 }
 
 
-impl CharacterTrait for &mut Npc {
+impl CharacterTrait for Npc {
     fn set_items(&mut self, items: HashMap<Item, i32>) {
-        self.npc_data.items = items;
+        self.items = items;
     }
 
     //noinspection DuplicatedCode
     fn add_item(&mut self, item: Item, amount: i32) {
-        for (key, value) in &mut self.npc_data.items {
+        for (key, value) in &mut self.items {
             if key.name == item.name {
                 *value += amount;
                 return;
             }
         }
-        self.npc_data.items.insert(item, amount);
+        self.items.insert(item, amount);
     }
 
     //noinspection DuplicatedCode
     fn remove_item(&mut self, item: Item, amount: i32) -> bool {
         // If player does not have the item, return false
-        if self.npc_data.items.iter().position(|(key, _value)| key.name == item.name).is_none() {
+        if self.items.iter().position(|(key, _value)| key.name == item.name).is_none() {
             return false;
         }
-        self.npc_data.items = self.npc_data.items.clone().into_iter().filter_map(|(key, value)| {
+        self.items = self.items.clone().into_iter().filter_map(|(key, value)| {
             if key.name != item.name {
                 return Some((key.to_owned(), value));
             }
@@ -124,12 +119,12 @@ impl CharacterTrait for &mut Npc {
     }
 
     fn get_items(&self) -> &HashMap<Item, i32> {
-        &self.npc_data.items
+        &self.items
     }
 
     fn print_self(&self) {
-        println!("{}", self.npc_data.name);
-        for (item, amount) in &self.npc_data.items {
+        println!("{}", self.name);
+        for (item, amount) in &self.items {
             println!("{}: {}", item.name, amount);
         }
     }
@@ -138,11 +133,11 @@ impl CharacterTrait for &mut Npc {
 impl Communicator for Npc {
     async fn talk(&mut self, message: ChatMessage) -> String {
         // Push user's message into the history
-        self.npc_data.message_history.push(message);
-        let request = ChatRequest::new(self.npc_data.message_history.clone());
+        self.message_history.push(message);
+        let request = ChatRequest::new(self.message_history.clone());
         let response = send_msg(&request).await.unwrap();
         // Push models response message into the history
-        self.npc_data.message_history.push(response.get_message());
+        self.message_history.push(response.get_message());
         // Return the response message
         response.get_message().get_content()
     }
