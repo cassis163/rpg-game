@@ -1,11 +1,9 @@
 use bevy::{app::{App, Plugin, Startup}, asset::Assets, color::Color, pbr::StandardMaterial, prelude::{Commands, Component, Mesh, ResMut}};
 
 use crate::character::spawn_character_entity;
+use crate::npc::npc::{Npc};
 
 pub struct NpcPlugin;
-
-#[derive(Component)]
-pub struct Npc;
 
 impl Plugin for NpcPlugin {
     fn build(&self, app: &mut App) {
@@ -35,5 +33,5 @@ fn spawn_npc(
     );
     commands
         .entity(character)
-        .insert(Npc);
+        .insert(Npc::new("Hank", "Blacksmith", "Hank is a well respected blacksmith in the Kingdom of Veldora"));
 }

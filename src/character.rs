@@ -6,6 +6,8 @@ use bevy::{
     prelude::{default, Commands, Cuboid, Entity, Mesh, ResMut, Transform},
 };
 use bevy_rapier3d::prelude::{Collider, Damping, ExternalForce, LockedAxes, RigidBody};
+use std::collections::HashMap;
+use crate::item::Item;
 
 #[derive(Component)]
 pub struct Character;
@@ -37,4 +39,12 @@ pub fn spawn_character_entity(
         })
         .insert(ExternalForce::default())
         .id()
+}
+
+pub trait CharacterTrait {
+    fn set_items(&mut self, new_items: HashMap<Item, i32>);
+    fn add_item(&mut self, item: Item, amount: i32);
+    fn remove_item(&mut self, item: Item, amount: i32) -> bool;
+    fn get_items(&self) -> &HashMap<Item, i32>;
+    fn print_self(&self);
 }

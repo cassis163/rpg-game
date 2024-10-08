@@ -3,8 +3,7 @@ use bevy::{
     math::Vec3,
     prelude::{Camera, Entity, Parent, Query, Transform, With, Without},
 };
-
-use super::player_plugin::Player;
+use crate::player::player::Player;
 
 pub struct CameraPlugin;
 

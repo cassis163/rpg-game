@@ -5,13 +5,15 @@ use bevy::{
     math::Vec3,
     pbr::StandardMaterial,
     prelude::{
-        default, BuildChildren, Camera3dBundle, Commands, Component, Mesh, OrthographicProjection,
+        default, BuildChildren, Camera3dBundle, Commands, Mesh, OrthographicProjection,
         ResMut, Transform,
     },
     render::camera::ScalingMode,
 };
 
 use crate::character::spawn_character_entity;
+use crate::player::player::Player;
+
 
 pub struct PlayerPlugin;
 
@@ -21,8 +23,8 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-#[derive(Component)]
-pub struct Player;
+// #[derive(Component)]
+// pub struct Player;
 
 fn spawn_player(
     mut commands: Commands,
@@ -39,7 +41,7 @@ fn spawn_player(
     let camera = create_camera();
     commands
         .entity(character)
-        .insert(Player)
+        .insert(Player::new("Bob".to_string()))
         .with_children(|parent| {
             parent.spawn(camera);
         });

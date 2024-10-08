@@ -8,6 +8,7 @@ use crate::{
     npc::npc_plugin::NpcPlugin, player::{
         camera_plugin::CameraPlugin, movement_plugin::PlayerMovementPlugin,
         player_plugin::PlayerPlugin,
+        actions_plugin::ActionsPlugin,
     }, scene::ScenePlugin
 };
 
@@ -21,5 +22,7 @@ pub fn launch_app() {
         .add_plugins(PlayerPlugin)
         .add_plugins(CameraPlugin)
         .add_plugins(PlayerMovementPlugin)
+        .add_plugins(bevy_tokio_tasks::TokioTasksPlugin::default())
+        .add_plugins(ActionsPlugin{blocking: true})
         .run();
 }
