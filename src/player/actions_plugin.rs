@@ -128,7 +128,7 @@ fn make_ai_request(
                     serde_json::from_str::<Interaction>(t.as_str()).unwrap_or(Interaction {
                         sender_id: "error".to_string(),
                         receiver_id: "error".to_string(),
-                        message: "There has been an error converting the AI response (actions_plugin::make_ai_request)".to_string(),
+                        message: format!("There has been an error converting the AI response (actions_plugin::make_ai_request). Response: {}", t),
                         actions: vec![],
                     })
                 });
