@@ -1,5 +1,6 @@
 from styletts2 import tts as style_tts
 import nltk
+import uuid
 
 tts = None
 
@@ -16,4 +17,5 @@ def init():
 
 def generate_audio(text):
     global tts
-    return tts.inference(text)
+    file_name = uuid.uuid4()
+    return tts.inference(text, output_wav_file="tmp/" + str(file_name) + ".wav")

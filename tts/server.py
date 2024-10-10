@@ -16,7 +16,8 @@ class Server(BaseHTTPRequestHandler):
     
     def write_audio_response(self, text):
         self.send_response(200)
-        self.send_header("Content-type", "audio/wav")
+        self.send_header("Content-Disposition", f'attachment; filename="generated.wav"')
+        self.send_header("Content-Type", "application/octet-stream")
         self.end_headers()
         self.wfile.write(generate_audio(text))
 
