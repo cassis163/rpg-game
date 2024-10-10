@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_mod_billboard::plugin::BillboardPlugin;
 use bevy_rapier3d::{
     plugin::{NoUserData, RapierPhysicsPlugin},
     render::RapierDebugRenderPlugin,
@@ -23,6 +24,7 @@ pub fn launch_app() {
         .add_plugins(CameraPlugin)
         .add_plugins(PlayerMovementPlugin)
         .add_plugins(bevy_tokio_tasks::TokioTasksPlugin::default())
-        .add_plugins(ActionsPlugin{blocking: true})
+        .add_plugins(BillboardPlugin)
+        .add_plugins(ActionsPlugin)
         .run();
 }

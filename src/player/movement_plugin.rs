@@ -41,17 +41,7 @@ fn update_players_movement_constructor() -> impl FnMut(Query<&mut ExternalForce,
 fn update_players_movement(
     mut query: Query<&mut ExternalForce, With<Player>>,
     key_input: Res<ButtonInput<KeyCode>>,
-    mut toggle_input_event: EventReader<ToggleInputEvent>,
-    mut can_move: Local<PlayerMovementState>,
 ) {
-    for tie in toggle_input_event.read() {
-        can_move.can_move = !tie.is_toggled;
-    }
-
-    if !can_move.can_move {
-        return;
-    }
-
     for mut impulse in query.iter_mut() {
         update_player_movement(&mut impulse, &key_input);
     }
