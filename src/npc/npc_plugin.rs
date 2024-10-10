@@ -1,7 +1,8 @@
-use bevy::{app::{App, Plugin, Startup}, asset::Assets, color::Color, pbr::StandardMaterial, prelude::{Commands, Component, Mesh, ResMut}};
-
 use crate::character::spawn_character_entity;
-use crate::npc::npc::{Npc};
+use crate::npc::npc::Npc;
+use bevy::prelude::TextBundle;
+use bevy::{app::{App, Plugin, Startup}, asset::Assets, color::Color, pbr::StandardMaterial, prelude::{Commands, Mesh, ResMut}};
+use bevy::text::Text;
 
 pub struct NpcPlugin;
 
@@ -34,4 +35,5 @@ fn spawn_npc(
     commands
         .entity(character)
         .insert(Npc::new("Hank", "Blacksmith", "Hank is a well respected blacksmith in the Kingdom of Veldora"));
+
 }

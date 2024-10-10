@@ -70,7 +70,8 @@ impl Npc {
         }
         "#,
         "As you can see you don't send the second object (your inventory). The game will update your inventory for you. Only communicate with one json object and never put any more text before or after the object or it will fail! \
-        Also don't add ```json before and ``` after the object. Just send the object only. So the first character will always be { and the last character you send will always be }",
+        Also don't add ```json before and ``` after the object. Just send the object only. So the first character will always be { and the last character you send will always be }. The content of the message field should be one long string without line breaks or newlines. We will parse it on the game side\
+        also sometimes the player will end the conversation naturally and you can choose to not respond to it anymore as this is more natural. If you want to do this just send an empty string for message",
         );
         Npc {
             message_history: vec![ChatMessage::new(MessageRole::System, npc_init)],
