@@ -10,6 +10,7 @@ use crate::{
         camera_plugin::CameraPlugin, movement_plugin::PlayerMovementPlugin,
         player_plugin::PlayerPlugin,
         actions_plugin::ActionsPlugin,
+        inventory_plugin::InventoryPlugin,
     }, scene::ScenePlugin
 };
 
@@ -26,5 +27,6 @@ pub fn launch_app() {
         .add_plugins(bevy_tokio_tasks::TokioTasksPlugin::default())
         .add_plugins(BillboardPlugin)
         .add_plugins(ActionsPlugin)
+        .add_plugins(InventoryPlugin)
         .run();
 }
