@@ -1,6 +1,8 @@
 use std::cmp::max;
 use std::collections::{HashMap, VecDeque};
+use std::io::Cursor;
 use std::mem;
+use std::sync::Arc;
 use bevy::{
     app::{Plugin, PostUpdate, Update},
     input::ButtonInput,
@@ -16,6 +18,7 @@ use bevy::text::Text2dBounds;
 use bevy_mod_billboard::{BillboardDepth, BillboardTextBundle};
 use bevy_mod_billboard::prelude::BillboardTextBounds;
 use bevy_tokio_tasks::TokioTasksRuntime;
+use nalgebra::DimAdd;
 use serde_json::Error;
 use serde_json_any_key::MapIterToJson;
 use tokio::task::JoinHandle;
@@ -58,6 +61,19 @@ struct AiRequestTask {
     generated_response: HashMap<String, JoinHandle<Interaction>>,
 }
 
+// Keeps track of TTS requests
+#[derive(Resource)]
+struct TTSRequest {
+    generated_tts: HashMap<String, JoinHandle<Vec<u8>>>,
+}
+
+// When a tts request is requested
+#[derive(Event)]
+struct TTSRequestEvent {
+    msg: String,
+    id: String,
+}
+
 // Component added to TextBundles so we can make them disappear after a while
 #[derive(Component, Eq, PartialEq)]
 struct Bubble {
@@ -75,14 +91,17 @@ struct SystemInputState {
 fn create_resource(mut commands: Commands) {
     commands.insert_resource(AiRequestTask { generated_response: HashMap::new() });
     commands.insert_resource(ChatBubble { queue: HashMap::new() });
+    commands.insert_resource(TTSRequest { generated_tts: HashMap::new() });
 }
 
 impl Plugin for ActionsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ToggleInputEvent>();
         app.add_event::<AiRequestEvent>();
+        app.add_event::<TTSRequestEvent>();
         app.add_systems(Startup, (create_resource, setup_scene));
-        app.add_systems(Update, (make_bubbles_follow_entities));
+        app.add_systems(Update, make_bubbles_follow_entities);
+        app.add_systems(Update, (request_tts, play_tts));
         app.add_systems(PostUpdate, (make_ai_request, listen_keyboard_input_events).run_if(resource_exists::<AiRequestTask>));
         app.add_systems(PostUpdate, (get_ai_response.run_if(resource_exists::<AiRequestTask>), bubbling_text));
     }
@@ -139,7 +158,14 @@ fn make_ai_request(
 }
 
 // Checks if the AI responses are done and if so; handles them
-fn get_ai_response(mut commands: Commands, mut player_query: Query<&mut Player>, mut npc_query: Query<(&mut Npc, &Transform)>, mut my_tasks: ResMut<AiRequestTask>, mut bubble_queue: ResMut<ChatBubble>) {
+fn get_ai_response(
+    mut commands: Commands,
+    mut player_query: Query<&mut Player>,
+    mut npc_query: Query<(&mut Npc, &Transform)>,
+    mut my_tasks: ResMut<AiRequestTask>,
+    mut bubble_queue: ResMut<ChatBubble>,
+    mut on_tts_request: EventWriter<TTSRequestEvent>
+) {
     my_tasks.generated_response.retain(|id, task| {
         let status = block_on(future::poll_once(task));
 
@@ -166,6 +192,7 @@ fn get_ai_response(mut commands: Commands, mut player_query: Query<&mut Player>,
                                 println!("{}", section);
                                 bubble_queue.queue.entry(npc.name.clone()).or_insert(VecDeque::from(vec![section.to_string()])).push_back(section.to_string());
                             }
+                            // Spawn text
                             commands.spawn(
                                 (BillboardTextBundle {
                                     transform: Transform::from_xyz(npc_transform.translation.x, npc_transform.translation.y + 1.5, npc_transform.translation.z).with_scale(TEXT_SCALE),
@@ -182,6 +209,9 @@ fn get_ai_response(mut commands: Commands, mut player_query: Query<&mut Player>,
                                     billboard_depth: BillboardDepth(false),
                                     ..default()
                                 }, Bubble { id: npc.name.clone(), timer: Timer::from_seconds(7., TimerMode::Once) }));
+                            // Send text to TTS python server to get audio
+                            on_tts_request.send(TTSRequestEvent{id: npc.name.clone(), msg: content.message.clone()});
+
                         }
                     }
                 }
@@ -357,4 +387,43 @@ fn create_text_bundle(id: String, msg: String, transform: &Transform) -> (Billbo
         text_bounds: BillboardTextBounds(Text2dBounds { size: Vec2::new(1000., 500.) }),
         ..default()
     }, Bubble { id, timer: Timer::from_seconds(7., TimerMode::Once) })
+}
+
+fn request_tts(
+    runtime: ResMut<TokioTasksRuntime>,
+    mut tts_tasks: ResMut<TTSRequest>,
+    mut on_tts_request: EventReader<TTSRequestEvent>,
+) {
+    for req in on_tts_request.read() {
+        let msg = req.msg.clone();
+        let task = runtime.spawn_background_task(|mut ctx| async move {
+            text_to_speech(msg.clone()).await.unwrap()
+
+        });
+        tts_tasks.generated_tts.insert(req.id.clone(), task);
+    }
+}
+
+fn play_tts(mut commands: Commands, mut tts_tasks: ResMut<TTSRequest>, mut audio_assets: ResMut<Assets<AudioSource>>) {
+    tts_tasks.generated_tts.retain(|id, task| {
+        let status = block_on(future::poll_once(task));
+        let retain = status.is_none();
+        if let Some(res) = status {
+            if let Ok(audio) = res {
+                let audio_source = AudioSource { bytes: Arc::from(audio.into_boxed_slice()) };
+                let handle = audio_assets.add(audio_source);
+                commands.spawn(AudioBundle{source: handle, settings: Default::default() });
+            }
+        }
+        retain
+    });
+}
+
+async fn text_to_speech(text: String) -> Result<Vec<u8>, reqwest::Error> {
+    let uri = format!("http://localhost:4003/generate?text={}", text.replace(" ", "%20"));
+    let http_client = reqwest::Client::new();
+    Ok(http_client
+        .get(uri)
+        .send()
+        .await?.bytes().await?.to_vec())
 }
