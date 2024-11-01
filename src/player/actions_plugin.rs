@@ -1,29 +1,24 @@
 use std::cmp::max;
-use std::collections::{HashMap, VecDeque};
-use std::io::Cursor;
 use std::mem;
 use std::sync::Arc;
+use std::collections::{HashMap, VecDeque};
 use bevy::{
     app::{Plugin, PostUpdate, Update},
-    input::ButtonInput,
     prelude::*,
-    tasks::{IoTaskPool, block_on, Task, futures_lite::{future}},
+    tasks::{block_on, futures_lite::future},
 };
+
 use bevy::app::Startup;
-use bevy::asset::AssetContainer;
-use bevy::ecs::bundle::DynamicBundle;
 use bevy::input::keyboard::{Key, KeyboardInput};
-use bevy::log::{info};
+use bevy::log::info;
 use bevy::text::Text2dBounds;
 use bevy_mod_billboard::{BillboardDepth, BillboardTextBundle};
 use bevy_mod_billboard::prelude::BillboardTextBounds;
 use bevy_tokio_tasks::TokioTasksRuntime;
-use nalgebra::DimAdd;
-use serde_json::Error;
 use serde_json_any_key::MapIterToJson;
 use tokio::task::JoinHandle;
 use crate::character::CharacterTrait;
-use crate::communication::{ChatMessage, ChatResponse, Communicator, MessageRole};
+use crate::communication::{ChatMessage, Communicator, MessageRole};
 use crate::Interaction;
 use crate::npc::npc::Npc;
 use crate::player::player::Player;
@@ -120,7 +115,7 @@ fn make_ai_request(
     }
 
     for req in on_ai_request.read() {
-        for mut player in player_query.iter_mut() {
+        for player in player_query.iter_mut() {
             for mut npc in npc_query.iter_mut() {
                 let message = req.msg.clone();
                 npc.message_history.push(ChatMessage::new(MessageRole::User, message.clone()));
@@ -129,7 +124,7 @@ fn make_ai_request(
                 let p_name = player.name.clone();
                 let n_name = npc.name.clone();
 
-                let task = runtime.spawn_background_task(|mut ctx| async move {
+                let task = runtime.spawn_background_task(|_ctx| async move {
                     let p_name = player_clone.name.clone();
                     let n_name = npc_clone.name.clone();
                     let it = Interaction {
@@ -166,15 +161,15 @@ fn get_ai_response(
     mut bubble_queue: ResMut<ChatBubble>,
     mut on_tts_request: EventWriter<TTSRequestEvent>
 ) {
-    my_tasks.generated_response.retain(|id, task| {
+    my_tasks.generated_response.retain(|_id, task| {
         let status = block_on(future::poll_once(task));
 
         let retain = status.is_none();
 
-        if let Some(mut res) = status {
+        if let Some(res) = status {
             if let Ok(content) = res {
                 info!("{}", content.message);
-                for player in player_query.iter_mut() {
+                for _player in player_query.iter_mut() {
                     for (mut npc, npc_transform) in npc_query.iter_mut() {
                         if npc.name == content.sender_id {
                             npc.message_history.push(ChatMessage::new(MessageRole::Assistant, content.message.clone()));
@@ -183,7 +178,7 @@ fn get_ai_response(
                             println!("{}", sections);
                             let section_size = content.message.len() / sections;
                             for i in 1..sections {
-                                let mut section = String::new();
+                                let section;
                                 if i == sections - 1 {
                                     section = content.message[i * section_size..].to_string();
                                 } else {
@@ -221,13 +216,16 @@ fn get_ai_response(
     });
 }
 
+#[derive(Component)]
+struct EditText;
+
 // Bottom left input text so the player sees what they type
 fn setup_scene(mut commands: Commands, asset_server: Res<AssetServer>) {
     // The default font has a limited number of glyphs, so use the full version for
     // sections that will hold text input.
     let font = asset_server.load("fonts/FiraMono-Medium.ttf");
 
-    commands.spawn(TextBundle {
+    commands.spawn((EditText, TextBundle {
         text: Text::from_section(
             "".to_string(),
             TextStyle {
@@ -244,7 +242,7 @@ fn setup_scene(mut commands: Commands, asset_server: Res<AssetServer>) {
             bottom: Val::Px(5.0),
             left: Val::Px(5.0),
             ..default()
-        }));
+        })));
 }
 
 // Checks for text bubbles that should be de-spawned
@@ -255,7 +253,7 @@ fn bubbling_text(
     time: Res<Time>,
     mut bubble_queue: ResMut<ChatBubble>,
 ) {
-    for (entity, mut transform, mut bubble) in bubbles.iter_mut() {
+    for (entity, transform, mut bubble) in bubbles.iter_mut() {
         if bubble.timer.tick(time.delta()).just_finished() {
             commands.entity(entity).despawn();
             if bubble_queue.queue.contains_key(&bubble.id) {
@@ -286,10 +284,10 @@ fn bubbling_text(
 // Makes sure the text-bubbles stick to the characters when they move
 fn make_bubbles_follow_entities(player_query: Query<(&Player, &Transform)>, npc_query: Query<(&Npc, &Transform)>, mut bubble_query: Query<(&mut Transform, &mut Bubble), (Without<Player>, Without<Npc>)>) {
     for (mut bubble_transform, bubble) in bubble_query.iter_mut() {
-        let mut transform = bubble_transform.clone();
-        if let Some((p, p_t)) = player_query.iter().find(|(p, p_t)| p.name == bubble.id) {
+        let transform;
+        if let Some((_, p_t)) = player_query.iter().find(|(p, _)| p.name == bubble.id) {
             transform = p_t.clone();
-        } else if let Some((n, n_t)) = npc_query.iter().find(|(n, n_t)| n.name == bubble.id) {
+        } else if let Some((_, n_t)) = npc_query.iter().find(|(n, _)| n.name == bubble.id) {
             transform = n_t.clone();
         } else {
             continue;
@@ -303,12 +301,12 @@ fn make_bubbles_follow_entities(player_query: Query<(&Player, &Transform)>, npc_
 fn listen_keyboard_input_events(
     mut commands: Commands,
     mut events: EventReader<KeyboardInput>,
-    mut edit_text: Query<&mut Text, (Without<Bubble>)>,
+    mut edit_text: Query<&mut Text, (With<EditText>, Without<Bubble>)>,
     mut is_typing: Local<SystemInputState>,
     mut emit_ai_request: EventWriter<AiRequestEvent>,
     mut toggle_input_events: EventWriter<ToggleInputEvent>,
     mut player_query: Query<(&mut Player, &Transform)>,
-    mut npc_query: Query<(&mut Npc, &Transform)>,
+    npc_query: Query<(&mut Npc, &Transform)>,
 ) {
     for event in events.read() {
         // Only trigger changes when the key is first pressed.

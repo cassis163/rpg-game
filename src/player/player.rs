@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use bevy::prelude::Component;
-use crate::character::{CharacterTrait};
+use crate::character::CharacterTrait;
 use crate::item::Item;
 
 #[derive(Component, Clone)]
