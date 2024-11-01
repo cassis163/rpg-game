@@ -11,7 +11,8 @@ use crate::{
         player_plugin::PlayerPlugin,
         actions_plugin::ActionsPlugin,
         inventory_plugin::InventoryPlugin,
-    }, scene::ScenePlugin
+        radial_menu_plugin::RadialMenuPlugin,
+    }, scene::ScenePlugin,
 };
 
 pub fn launch_app() {
@@ -28,5 +29,6 @@ pub fn launch_app() {
         .add_plugins(BillboardPlugin)
         .add_plugins(ActionsPlugin)
         .add_plugins(InventoryPlugin)
+        .add_plugins(RadialMenuPlugin)
         .run();
 }
